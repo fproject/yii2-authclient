@@ -1,6 +1,6 @@
 {
     "name": "fproject/yii2-authclient",
-    "description": "Extended OAuth components for F-Project server sites",
+    "description": "F-Project Extended OAuth client components for Yii 2",
     "keywords": ["yii2", "OAuth", "fproject", "authenticate"],
     "homepage": "https://github.com/fproject/yii2-common",
     "type": "yii2-extension",
