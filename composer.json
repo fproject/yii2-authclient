@@ -1,5 +1,5 @@
 {
-    "name": "fproject/yii2-oauth",
+    "name": "fproject/yii2-authclient",
     "description": "Extended OAuth components for F-Project server sites",
     "keywords": ["yii2", "OAuth", "fproject", "authenticate"],
     "homepage": "https://github.com/fproject/yii2-common",
