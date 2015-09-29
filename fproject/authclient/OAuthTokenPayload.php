@@ -17,7 +17,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace app\components;
+namespace fproject\authclient;
 use stdClass;
 
 class OAuthTokenPayload

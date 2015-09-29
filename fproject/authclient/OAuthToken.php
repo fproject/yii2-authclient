@@ -17,7 +17,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace app\components;
+namespace fproject\authclient;
 
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;

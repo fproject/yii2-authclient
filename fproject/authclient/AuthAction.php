@@ -62,7 +62,7 @@ class AuthAction extends \yii\authclient\AuthAction
 
 
     /**
-     * @param ProjectKitOAuth $client
+     * @param OAuth2 $client
      */
     public function onAuthSuccess($client)
     {
