@@ -90,7 +90,7 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     protected function createToken(array $tokenConfig = [])
     {
-        $tokenConfig['class'] = 'app\components\ProjectKitOAuthToken';
+        $tokenConfig['class'] = 'fproject\authclient\OAuthToken';
         $tokenConfig['publicKey'] = $this->getPublicKey();
         return parent::createToken($tokenConfig);
     }
