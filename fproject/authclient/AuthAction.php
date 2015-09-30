@@ -29,15 +29,6 @@ class AuthAction extends \yii\authclient\AuthAction
     /**
      * @inheritdoc
      */
-    public function init()
-    {
-        parent::init();
-        $this->successCallback = [$this, 'onAuthSuccess'];
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function run()
     {
         if (!empty($_GET['contextData']))
@@ -65,11 +56,26 @@ class AuthAction extends \yii\authclient\AuthAction
         throw new NotFoundHttpException();
     }
 
+    /** @inheritdoc */
+    protected function authSuccess($client)
+    {
+        if (!is_callable($this->successCallback))
+        {
+            $this->successCallback = [$this, 'onAuthSuccess'];
+            parent::authSuccess($client);
+        }
+        else
+        {
+            /** @var OAuth2 $client */
+            $this->onAuthSuccess($client);
+            parent::authSuccess($client);
+        }
+    }
 
     /**
      * @param OAuth2 $client
      */
-    public function onAuthSuccess($client)
+    protected function onAuthSuccess($client)
     {
         $attributes = $client->getUserAttributes();
         $identity = new UserIdentity($attributes);

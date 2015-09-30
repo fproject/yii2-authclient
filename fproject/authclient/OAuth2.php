@@ -73,23 +73,6 @@ class OAuth2 extends \yii\authclient\OAuth2
         return parent::buildAuthUrl($params);
     }
 
-
-    /**
-     * @inheritdoc
-     */
-    protected function defaultName()
-    {
-        return 'project-kit';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function defaultTitle()
-    {
-        return 'ProjectKit';
-    }
-
     /**
      * @inheritdoc
      */
