@@ -28,10 +28,7 @@ class AuthRevokeAction extends AuthLogoutActionBase
      */
     public function run()
     {
-        /** @var Collection $collection */
-        $collection = Yii::$app->get($this->clientCollection);
-        /** @var OAuth2 $client */
-        $client = $collection->getClient($this->authClientId);
+
     }
 
 }

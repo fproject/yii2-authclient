@@ -50,6 +50,8 @@ class OAuth2 extends \yii\authclient\OAuth2
         'email',
     ];
 
+    private $isLoggingOut = false;
+
     /** The expire duration for pubic key */
     const PUBLIC_KEY_EXPIRE_DURATION = 86400;
     /**
@@ -101,8 +103,12 @@ class OAuth2 extends \yii\authclient\OAuth2
     public function getCurlOptions()
     {
         $options = parent::getCurlOptions();
-        $options[CURLOPT_HTTPHEADER] =
-            ['Authorization' => 'Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret)];
+        if(!$this->isLoggingOut)
+        {
+            $options[CURLOPT_HTTPHEADER] =
+                ['Authorization: Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret)];
+        }
+
         return $options;
     }
 
@@ -135,6 +141,8 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     public function logout($globalLogout=true)
     {
+        $this->isLoggingOut = true;
+
         /** @var UserIdentity $identity */
         $identity = Yii::$app->user->identity;
         $token = $this->getAccessToken()->token;
@@ -143,9 +151,9 @@ class OAuth2 extends \yii\authclient\OAuth2
 
         if($identity != null && !empty($identity->sid))
         {
-            $headers = ['Authorization' => "Bearer " . $token];
+            $headers = ['Authorization: Bearer ' . $token];
             $params = ['sid' => $identity->sid];
-            $this->sendRequest("GET", $this->logoutUrl, $params, $headers);
+            $this->sendRequest('GET', $this->logoutUrl, $params, $headers);
         }
         return true;
     }
