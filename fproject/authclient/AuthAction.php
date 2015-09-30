@@ -51,7 +51,12 @@ class AuthAction extends \yii\authclient\AuthAction
                 if (!$collection->hasClient($clientId)) {
                     throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
                 }
+
+                /** @var OAuth2 $client */
                 $client = $collection->getClient($clientId);
+
+                if (!empty($_GET['sid']))
+                    $client->sessionId = $_GET['sid'];
 
                 return $this->auth($client);
             }
@@ -70,6 +75,7 @@ class AuthAction extends \yii\authclient\AuthAction
         $identity = new UserIdentity($attributes);
         if(Yii::$app->user->login($identity, $client->getAccessToken()->getExpireDuration()))
         {
+            $identity->sid = $client->sessionId;
             $identity->saveToSession();
         }
     }

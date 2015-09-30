@@ -31,6 +31,9 @@ use yii\web\IdentityInterface;
  */
 class UserIdentity implements IdentityInterface
 {
+    /** @var string $sid Session ID */
+    public $sid;
+
     /**
      * @var string $sub
      * User ID register in pk-auth

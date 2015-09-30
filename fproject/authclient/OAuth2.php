@@ -21,6 +21,7 @@ namespace fproject\authclient;
 
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
+use fproject\models\UserIdentity;
 use yii\helpers\Json;
 use Yii;
 
@@ -38,6 +39,8 @@ class OAuth2 extends \yii\authclient\OAuth2
     /** @var  string $contextData the context data that will send together with auth's URL params */
     public $contextData;
 
+    /** @var  string $sessionId the session ID issued by OAuth provider */
+    public $sessionId;
     /**
      * @var array list of attribute names, which should be requested from API to initialize user attributes.
      */
@@ -47,6 +50,8 @@ class OAuth2 extends \yii\authclient\OAuth2
         'email',
     ];
 
+    /** The expire duration for pubic key */
+    const PUBLIC_KEY_EXPIRE_DURATION = 86400;
     /**
      * @inheritdoc
      */
@@ -123,20 +128,29 @@ class OAuth2 extends \yii\authclient\OAuth2
 
     public function getPublicKey()
     {
-        if(!isset($this->_publicKey))
+        if(empty($this->_publicKey) && !empty($this->jwkUrl))
         {
-            $this->_publicKey = $this->sendRequest('GET', $this->jwkUrl);
+            if(Yii::$app->cache)
+            {
+                $this->_publicKey = Yii::$app->cache->get($this->jwkUrl);
+                if($this->_publicKey === false)
+                {
+                    $this->_publicKey = $this->sendRequest('GET', $this->jwkUrl);
+                    Yii::$app->cache->set($this->jwkUrl, $this->_publicKey, self::PUBLIC_KEY_EXPIRE_DURATION);
+                }
+            }
         }
         return $this->_publicKey;
     }
 
     public function logout()
     {
-        $sid = Yii::$app->user->getId();
-        if($sid)
+        /** @var UserIdentity $identity */
+        $identity = Yii::$app->user->getIdentity();
+        if($identity != null && !empty($identity->sid))
         {
             $headers = ['Authorization' => "Bearer " . $this->getAccessToken()->token];
-            $params = ['sid' => $sid];
+            $params = ['sid' => $identity->sid];
             $this->sendRequest("GET", $this->logoutUrl, $params, $headers);
         }
     }
