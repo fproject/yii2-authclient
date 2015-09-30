@@ -22,6 +22,13 @@ namespace fproject\models;
 use Yii;
 use yii\web\IdentityInterface;
 
+/**
+ * Class UserIdentity
+ *
+ * @package fproject\models
+ *
+ * @author Bui Sy Nguyen <nguyenbs@gmail.com>
+ */
 class UserIdentity implements IdentityInterface
 {
     /**
@@ -42,23 +49,6 @@ class UserIdentity implements IdentityInterface
     public $nickname;
 
     /**
-     * @var string $profile URL of the End-User's profile page. The contents of this Web page SHOULD be about
-     * the End-User.
-     */
-    public $profile;
-
-    /**
-     * @var string $picture URL of the End-User's profile picture. This URL MUST refer to an image file (for example,
-     * a PNG, JPEG, or GIF image file), rather than to a Web page containing an image
-     */
-    public $picture;
-
-    /**
-     * @var string $website URL of the End-User's Web page or blog
-     */
-    public $website;
-
-    /**
      * @var string $email End-User's preferred e-mail address
      */
     public $email;
@@ -71,21 +61,6 @@ class UserIdentity implements IdentityInterface
      * and dependent upon the trust framework or contractual agreements within which the parties are operating.
      */
     public $emailVerified;
-
-    /**
-     * @var string $gender
-     * End-User's gender
-     */
-    public $gender;
-
-    /**
-     * @var string $birthdate
-     * End-User's birthday, represented as an ISO 8601:2004 [ISO8601?2004] YYYY-MM-DD format. The year MAY be 0000,
-     * indicating that it is omitted. To represent only the year, YYYY format is allowed. Note that depending on
-     * the underlying platform's date related function, providing just year can result in varying month and day,
-     * so the implementers need to take this factor into account to correctly process the dates.
-     */
-    public $birthdate;
 
     /**
      * @var string $zoneinfo
@@ -102,44 +77,6 @@ class UserIdentity implements IdentityInterface
      * rather than a dash, for example, en_US; Relying Parties MAY choose to accept this locale syntax as well.
      */
     public $locale;
-
-    /**
-     * @var string $phoneNumber
-     * End-User's preferred telephone number.
-     */
-    public $phoneNumber;
-
-    /**
-     * @var bool $phoneNumberVerified
-     * True if the End-User's phone number has been verified; otherwise false. When this Claim Value is true, this means
-     * that the OP took affirmative steps to ensure that this phone number was controlled by the End-User at the time
-     * the verification was performed. The means by which a phone number is verified is context-specific, and dependent upon
-     * the trust framework or contractual agreements within which the parties are operating. When true, the phone_number
-     * Claim MUST be in E.164 format and any extensions MUST be represented in RFC 3966 format.
-     */
-    public $phoneNumberVerified;
-
-    /**
-     * @var \stdClass $address
-     * End-User's preferred postal address. The value of the address member is a JSON [RFC4627] structure containing some
-     * or all of the members defined in
-     */
-    public $address;
-
-    /**
-     * @var string $updatedAt
-     * Time the End-User's information was last updated. Its value is a JSON number representing the number of seconds
-     * from 1970-01-01T0:0:0Z as measured in UTC until the date/time.
-     */
-    public $updatedAt;
-
-    /** @var string $projectGroups */
-    public $projectGroups;
-
-    /**
-     * @var string $exInfo
-     */
-    public $exInfo;
 
     /**
      * @var string $accessToken
@@ -235,8 +172,21 @@ class UserIdentity implements IdentityInterface
         return true;
     }
 
+    /**
+     * Save identity information to session if it is enabled
+     */
     public function saveToSession()
     {
-        Yii::$app->session->set($this->getId(), $this);
+        if(Yii::$app->user->enableSession)
+            Yii::$app->session->set($this->getId(), $this);
+    }
+
+    /**
+     * @param $duration
+     */
+    public function saveToCache($duration)
+    {
+        if(Yii::$app->cache)
+            Yii::$app->cache->set($this->getId(), $this, $duration);
     }
 }

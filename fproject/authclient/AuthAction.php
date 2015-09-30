@@ -68,7 +68,7 @@ class AuthAction extends \yii\authclient\AuthAction
     {
         $attributes = $client->getUserAttributes();
         $identity = new UserIdentity($attributes);
-        if(Yii::$app->user->login($identity, $client->getAccessToken()->getExpireDuration()) && Yii::$app->user->enableSession)
+        if(Yii::$app->user->login($identity, $client->getAccessToken()->getExpireDuration()))
         {
             $identity->saveToSession();
         }
