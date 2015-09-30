@@ -52,6 +52,9 @@ class OAuth2 extends \yii\authclient\OAuth2
 
     private $isLoggingOut = false;
 
+    /** The cryptography algorithm used to encrypt/decrypt JWT */
+    const CRYPTO_ALG = 'RS256';
+
     /** The expire duration for pubic key */
     const PUBLIC_KEY_EXPIRE_DURATION = 86400;
     /**
@@ -81,8 +84,15 @@ class OAuth2 extends \yii\authclient\OAuth2
     protected function createToken(array $tokenConfig = [])
     {
         $tokenConfig['class'] = 'fproject\authclient\OAuthToken';
-        $tokenConfig['publicKey'] = $this->getPublicKey();
-        return parent::createToken($tokenConfig);
+        /** @var OAuthToken $token */
+        $token = parent::createToken($tokenConfig);
+        $jwt = $token->params[$token->tokenParamKey];
+        $jwk = JWK::parseKeySet($this->getPublicKey());
+        $rawPayload = JWT::decode($jwt, $jwk, [self::CRYPTO_ALG]);
+        if(!empty($rawPayload))
+            $token->payload = new OAuthTokenPayload($rawPayload);
+
+        return $token;
     }
 
     /**
@@ -95,7 +105,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         {
             $idToken = $params['id_token'];
             $key = JWK::parseKeySet($this->getPublicKey());
-            return (array)JWT::decode($idToken, $key, [OAuthToken::CRYPTO_ALG]);
+            return (array)JWT::decode($idToken, $key, [self::CRYPTO_ALG]);
         }
         return null;
     }

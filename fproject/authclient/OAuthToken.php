@@ -25,21 +25,8 @@ use Yii;
 
 class OAuthToken extends \yii\authclient\OAuthToken
 {
-    const CRYPTO_ALG = 'RS256';
-
-    public $publicKey;
-
     /** @var  OAuthTokenPayload */
     public $payload;
-
-    public function init()
-    {
-        $jwt = $this->params[$this->tokenParamKey];
-        $jwk = JWK::parseKeySet($this->publicKey);
-        $rawPayload = JWT::decode($jwt, $jwk, [self::CRYPTO_ALG]);
-        if(!empty($rawPayload))
-            $this->payload = new OAuthTokenPayload($rawPayload);
-    }
 
     public function getIsExpired()
     {
