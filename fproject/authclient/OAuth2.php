@@ -21,7 +21,7 @@ namespace fproject\authclient;
 
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
-use fproject\models\UserIdentity;
+use fproject\web\UserIdentity;
 use yii\helpers\Json;
 use Yii;
 

@@ -19,7 +19,7 @@
 
 namespace fproject\authclient;
 
-use fproject\models\UserIdentity;
+use fproject\web\UserIdentity;
 use Yii;
 use yii\helpers\Json;
 use yii\web\NotFoundHttpException;
