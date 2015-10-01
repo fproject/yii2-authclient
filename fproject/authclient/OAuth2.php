@@ -87,8 +87,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         /** @var OAuthToken $token */
         $token = parent::createToken($tokenConfig);
         $jwt = $token->params[$token->tokenParamKey];
-        $jwk = JWK::parseKeySet($this->getPublicKey());
-        $rawPayload = JWT::decode($jwt, $jwk, [self::CRYPTO_ALG]);
+        $rawPayload = JWT::decode($jwt, $this->getPublicKey(), [self::CRYPTO_ALG]);
         if(!empty($rawPayload))
             $token->payload = new OAuthTokenPayload($rawPayload);
 
@@ -104,8 +103,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         if(isset($params['id_token']))
         {
             $idToken = $params['id_token'];
-            $key = JWK::parseKeySet($this->getPublicKey());
-            return (array)JWT::decode($idToken, $key, [self::CRYPTO_ALG]);
+            return (array)JWT::decode($idToken, $this->getPublicKey(), [self::CRYPTO_ALG]);
         }
         return null;
     }
@@ -122,24 +120,44 @@ class OAuth2 extends \yii\authclient\OAuth2
         return $options;
     }
 
-    /** @var  resource $publicKey */
+    /** @var  array $publicKey */
     private $_publicKey;
 
+    /**
+     * The public key in decoded JWK format used for Token encode/decode
+     * @return array|mixed
+     * @throws \yii\authclient\InvalidResponseException
+     * @throws \yii\base\Exception
+     */
     public function getPublicKey()
     {
         if(empty($this->_publicKey) && !empty($this->jwkUrl))
         {
             if(Yii::$app->cache)
             {
-                $this->_publicKey = Yii::$app->cache->get($this->jwkUrl);
-                if($this->_publicKey === false)
-                {
-                    $this->_publicKey = $this->sendRequest('GET', $this->jwkUrl);
-                    Yii::$app->cache->set($this->jwkUrl, $this->_publicKey, self::PUBLIC_KEY_EXPIRE_DURATION);
-                }
+                $cacheKey = "JWK_".sha1($this->jwkUrl);
+                $jwk = Yii::$app->cache->get($cacheKey);
+            }
+
+            if(!empty($jwk))
+            {
+                $jwk = $this->sendRequest('GET', $this->jwkUrl);
+                if(!empty($jwk) && Yii::$app->cache)
+                    Yii::$app->cache->set($cacheKey, $jwk, self::PUBLIC_KEY_EXPIRE_DURATION);
+                $this->_publicKey = JWK::parseKeySet($jwk);
             }
         }
         return $this->_publicKey;
+    }
+
+    /**
+     * Decode a JWT token
+     * @param string $token the encoded JWT token
+     * @return array
+     */
+    public function decodeToken($token)
+    {
+        return (array)JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
     }
 
     /**
