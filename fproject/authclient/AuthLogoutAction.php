@@ -19,7 +19,6 @@
 
 namespace fproject\authclient;
 use Yii;
-use yii\authclient\Collection;
 
 class AuthLogoutAction extends AuthLogoutActionBase
 {

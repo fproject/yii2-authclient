@@ -21,7 +21,9 @@ namespace fproject\authclient;
 
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
+use fproject\web\User;
 use fproject\web\UserIdentity;
+use yii\authclient\Collection;
 use yii\helpers\Json;
 use Yii;
 
@@ -139,13 +141,15 @@ class OAuth2 extends \yii\authclient\OAuth2
                 $jwk = Yii::$app->cache->get($cacheKey);
             }
 
-            if(!empty($jwk))
+            if(empty($jwk))
             {
                 $jwk = $this->sendRequest('GET', $this->jwkUrl);
                 if(!empty($jwk) && Yii::$app->cache)
                     Yii::$app->cache->set($cacheKey, $jwk, self::PUBLIC_KEY_EXPIRE_DURATION);
-                $this->_publicKey = JWK::parseKeySet($jwk);
             }
+
+            if(!empty($jwk))
+                $this->_publicKey = JWK::parseKeySet($jwk);
         }
         return $this->_publicKey;
     }
@@ -157,7 +161,21 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     public function verifyAndDecodeToken($token)
     {
-        return JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
+        $payload = JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
+        if(!empty($payload) && property_exists($payload,'sub'))
+            if($this->checkRevokedSub($payload->sub))
+                throw new TokenRevokedException('Token is revoked.');
+        return $payload;
+    }
+
+    public function checkRevokedSub($sub)
+    {
+        if(Yii::$app->cache)
+        {
+            $cacheKey = "Revoked_JWT_".$sub;
+            return Yii::$app->cache->get($cacheKey) !== false;
+        }
+        return false;
     }
 
     /**
@@ -184,5 +202,33 @@ class OAuth2 extends \yii\authclient\OAuth2
             $this->sendRequest('GET', $this->logoutUrl, $params, $headers);
         }
         return true;
+    }
+
+    /** @var OAuth2 $_instance Singleton instance */
+    private static $_instance;
+
+    /**
+     * Get singleton instance using Yii's auth client configuration
+     * @return null|OAuth2
+     * @throws \yii\base\InvalidConfigException
+     */
+    public static function getInstance()
+    {
+        if(!isset(self::$_instance))
+        {
+            /** @var User $user */
+            $user = Yii::$app->user;
+            if(isset($user->authClientConfig) && isset($user->authClientConfig['collection']) && isset($user->authClientConfig['id']))
+            {
+                /** @var Collection $collection */
+                $collection = Yii::$app->get($user->authClientConfig['collection']);
+                if($collection->hasClient($user->authClientConfig['id']))
+                {
+                    self::$_instance = $collection->getClient($user->authClientConfig['id']);
+                }
+            }
+        }
+
+        return self::$_instance;
     }
 }

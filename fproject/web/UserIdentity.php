@@ -22,7 +22,6 @@ namespace fproject\web;
 use fproject\authclient\OAuth2;
 use fproject\authclient\OAuthTokenPayload;
 use Yii;
-use yii\authclient\Collection;
 use yii\web\IdentityInterface;
 
 /**
@@ -134,22 +133,13 @@ class UserIdentity implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        /** @var User $user */
-        $user = Yii::$app->user;
-        if(isset($user->authClientConfig) && isset($user->authClientConfig['collection']) && isset($user->authClientConfig['id']))
+        if(OAuth2::getInstance())
         {
-            /** @var Collection $collection */
-            $collection = Yii::$app->get($user->authClientConfig['collection']);
-            if($collection->hasClient($user->authClientConfig['id']))
+            $rawPayload = OAuth2::getInstance()->verifyAndDecodeToken($token);
+            if(!empty($rawPayload))
             {
-                /** @var OAuth2 $client */
-                $client = $collection->getClient($user->authClientConfig['id']);
-                $rawPayload = $client->verifyAndDecodeToken($token);
-                if(!empty($rawPayload))
-                {
-                    $payload = new OAuthTokenPayload($rawPayload);
-                    return new UserIdentity((array)$payload);
-                }
+                $payload = new OAuthTokenPayload($rawPayload);
+                return new UserIdentity((array)$payload);
             }
         }
         return null;
