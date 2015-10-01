@@ -136,7 +136,7 @@ class UserIdentity implements IdentityInterface
         if(OAuth2::getInstance())
         {
             $rawPayload = OAuth2::getInstance()->verifyAndDecodeToken($token);
-            if(!empty($rawPayload))
+            if(!empty($rawPayload) && property_exists($rawPayload, 'sub'))
             {
                 $payload = new OAuthTokenPayload($rawPayload);
                 return new UserIdentity((array)$payload);

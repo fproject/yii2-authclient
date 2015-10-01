@@ -25,9 +25,14 @@ class AuthRevokeAction extends AuthLogoutActionBase
     /**
      * @inheritdoc
      */
-    public function run()
+    public function run($token)
     {
-
+        $authClient = OAuth2::getInstance();
+        if($authClient)
+        {
+            $payload = $authClient->verifyAndDecodeToken($token, false);
+            $authClient->saveRevokedToken($payload);
+        }
     }
 
 }

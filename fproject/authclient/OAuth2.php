@@ -157,25 +157,46 @@ class OAuth2 extends \yii\authclient\OAuth2
     /**
      * Verify and decode a JWT token
      * @param string $token the encoded JWT token
+     * @param bool $checkRevoked
      * @return \stdClass the payload data of JWT token
      */
-    public function verifyAndDecodeToken($token)
+    public function verifyAndDecodeToken($token, $checkRevoked=true)
     {
         $payload = JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
-        if(!empty($payload) && property_exists($payload,'sub'))
-            if($this->checkRevokedSub($payload->sub))
-                throw new TokenRevokedException('Token is revoked.');
+        if($checkRevoked && $this->checkRevokedSub($payload))
+            throw new TokenRevokedException('Token is revoked.');
         return $payload;
     }
 
-    public function checkRevokedSub($sub)
+    /**
+     * Check if token is revoked
+     * @param \stdClass $payload the token's payload
+     * @return bool true if the token is revoked
+     */
+    public function checkRevokedSub($payload)
     {
-        if(Yii::$app->cache)
+        if(!empty($payload) && property_exists($payload, 'sub') && Yii::$app->cache)
         {
-            $cacheKey = "Revoked_JWT_".$sub;
+            $cacheKey = "Revoked_JWT_".sha1($payload->sub);
             return Yii::$app->cache->get($cacheKey) !== false;
         }
         return false;
+    }
+
+    /**
+     * Save revoked token to cache
+     * @param \stdClass $payload the token's payload
+     */
+    public function saveRevokedToken($payload)
+    {
+        if(!empty($payload) && property_exists($payload, 'sub') && property_exists($payload,'exp') && Yii::$app->cache)
+        {
+            $cacheKey = "Revoked_JWT_".sha1($payload->sub);
+            $duration = time() + JWT::$leeway - $payload->exp;
+
+            if($duration > 0)
+                Yii::$app->cache->set($cacheKey, true, $duration);
+        }
     }
 
     /**
