@@ -87,7 +87,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         /** @var OAuthToken $token */
         $token = parent::createToken($tokenConfig);
         $jwt = $token->params[$token->tokenParamKey];
-        $rawPayload = $this->decodeToken($jwt);
+        $rawPayload = $this->verifyAndDecodeToken($jwt);
         if(!empty($rawPayload))
             $token->payload = new OAuthTokenPayload($rawPayload);
 
@@ -103,7 +103,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         if(isset($params['id_token']))
         {
             $idToken = $params['id_token'];
-            return (array)$this->decodeToken($idToken);
+            return (array)$this->verifyAndDecodeToken($idToken);
         }
         return null;
     }
@@ -151,11 +151,11 @@ class OAuth2 extends \yii\authclient\OAuth2
     }
 
     /**
-     * Decode a JWT token
+     * Verify and decode a JWT token
      * @param string $token the encoded JWT token
-     * @return \stdClass
+     * @return \stdClass the payload data of JWT token
      */
-    public function decodeToken($token)
+    public function verifyAndDecodeToken($token)
     {
         return JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
     }
