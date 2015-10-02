@@ -192,7 +192,7 @@ class OAuth2 extends \yii\authclient\OAuth2
         if(!empty($payload) && property_exists($payload, 'sub') && property_exists($payload,'exp') && Yii::$app->cache)
         {
             $cacheKey = "Revoked_JWT_".sha1($payload->sub);
-            $duration = time() + JWT::$leeway - $payload->exp;
+            $duration = (int)$payload->exp + JWT::$leeway - time();
 
             if($duration > 0)
                 Yii::$app->cache->set($cacheKey, true, $duration);
