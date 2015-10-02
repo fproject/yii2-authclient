@@ -22,16 +22,19 @@ namespace fproject\web;
 use fproject\authclient\OAuth2;
 use fproject\authclient\OAuthTokenPayload;
 use Yii;
+use yii\base\Object;
 use yii\web\IdentityInterface;
 
 /**
  * Class UserIdentity
  *
+ * @property string $accessToken
+ *
  * @package fproject\models
  *
  * @author Bui Sy Nguyen <nguyenbs@gmail.com>
  */
-class UserIdentity implements IdentityInterface
+class UserIdentity extends Object implements IdentityInterface
 {
     /** @var string $sid Session ID */
     public $sid;
@@ -83,17 +86,23 @@ class UserIdentity implements IdentityInterface
      */
     public $locale;
 
-    /**
-     * @var string $accessToken
-     */
-    public $accessToken;
 
     /**
-     * @var string $refreshToken
+     * @return string JWT auth token.
      */
-    public $refreshToken;
+    public function getAccessToken()
+    {
+        $at = OAuth2::getInstance()->getAccessToken();
+        if(isset($at))
+            return $at->token;
+        return null;
+    }
 
-    public function __construct($attributes)
+    /**
+     * Override to swallow the parent constructor logic
+     * @param array $attributes
+     */
+    public function __construct($attributes = [])
     {
         if(!empty($attributes))
         {
