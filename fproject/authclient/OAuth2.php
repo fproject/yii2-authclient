@@ -169,6 +169,18 @@ class OAuth2 extends \yii\authclient\OAuth2
     }
 
     /**
+     * Get user information from OAuth2 provider
+     * @param string $accessToken The bearer access token, scoped to retrieve the consented claims for the subject (end-user).
+     * @return array
+     * @throws \Exception
+     */
+    public function getUserInfo($accessToken)
+    {
+        $headers = ['Authorization: Bearer ' . $accessToken];
+        return $this->sendRequest('GET', $this->userInfoUrl, $headers);
+    }
+
+    /**
      * Check if token is revoked
      * @param \stdClass $payload the token's payload
      * @return bool true if the token is revoked
