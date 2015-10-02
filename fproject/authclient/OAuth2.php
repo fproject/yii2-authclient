@@ -1,7 +1,7 @@
 <?php
 ///////////////////////////////////////////////////////////////////////////////
 //
-// © Copyright f-project.net 2010-present. All Rights Reserved.
+// ï¿½ Copyright f-project.net 2010-present. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -237,6 +237,12 @@ class OAuth2 extends \yii\authclient\OAuth2
             $this->sendRequest('GET', $this->logoutUrl, $params, $headers);
         }
         return true;
+    }
+
+    public function init()
+    {
+        parent::init();
+        self::$_instance = $this;
     }
 
     /** @var OAuth2 $_instance Singleton instance */
