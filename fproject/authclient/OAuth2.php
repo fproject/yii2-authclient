@@ -174,8 +174,10 @@ class OAuth2 extends \yii\authclient\OAuth2
      * @return array
      * @throws \Exception
      */
-    public function getUserInfo($accessToken)
+    public function getUserInfo($accessToken=null)
     {
+        if($accessToken == null)
+            $accessToken = $this->getAccessToken()->token;
         $headers = ['Authorization: Bearer ' . $accessToken];
         return $this->sendRequest('GET', $this->userInfoUrl, $headers);
     }
