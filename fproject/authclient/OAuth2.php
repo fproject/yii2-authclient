@@ -163,7 +163,7 @@ class OAuth2 extends \yii\authclient\OAuth2
     public function verifyAndDecodeToken($token, $checkRevoked=true)
     {
         $payload = JWT::decode($token, $this->getPublicKey(), [self::CRYPTO_ALG]);
-        if($checkRevoked && $this->checkRevokedSub($payload))
+        if($checkRevoked && $this->checkRevokedToken($token, $payload))
             throw new TokenRevokedException('Token is revoked.');
         return $payload;
     }
@@ -184,33 +184,38 @@ class OAuth2 extends \yii\authclient\OAuth2
 
     /**
      * Check if token is revoked
+     * @param string $token the JWT token
      * @param \stdClass $payload the token's payload
      * @return bool true if the token is revoked
      */
-    public function checkRevokedSub($payload)
+    public function checkRevokedToken($token, $payload)
     {
-        if(!empty($payload) && property_exists($payload, 'sub') && Yii::$app->cache)
+        if(!empty($payload) && Yii::$app->cache)
         {
-            $cacheKey = "Revoked_JWT_".sha1($payload->sub);
-            return Yii::$app->cache->get($cacheKey) !== false;
+            return Yii::$app->cache->get($this->getRevokedTokenCacheKey($token)) !== false;
         }
         return false;
     }
 
     /**
      * Save revoked token to cache
+     * @param string $token the JWT token
      * @param \stdClass $payload the token's payload
      */
-    public function saveRevokedToken($payload)
+    public function saveRevokedToken($token, $payload)
     {
-        if(!empty($payload) && property_exists($payload, 'sub') && property_exists($payload,'exp') && Yii::$app->cache)
+        if(!empty($payload) && property_exists($payload,'exp') && Yii::$app->cache)
         {
-            $cacheKey = "Revoked_JWT_".sha1($payload->sub);
             $duration = (int)$payload->exp + JWT::$leeway - time();
 
             if($duration > 0)
-                Yii::$app->cache->set($cacheKey, true, $duration);
+                Yii::$app->cache->set($this->getRevokedTokenCacheKey($token), true, $duration);
         }
+    }
+
+    private function getRevokedTokenCacheKey($token)
+    {
+        return "Revoked_JWT_".sha1($token);
     }
 
     /**
