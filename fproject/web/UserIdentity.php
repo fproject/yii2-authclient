@@ -28,7 +28,8 @@ use yii\web\IdentityInterface;
 /**
  * Class UserIdentity
  *
- * @property string $accessToken
+ * @property string $accessToken JWT auth token of this identity
+ * @property int $expireTime the expire time of JWT token of this identity
  *
  * @package fproject\models
  *
@@ -86,7 +87,6 @@ class UserIdentity extends Object implements IdentityInterface
      */
     public $locale;
 
-
     /**
      * @return string JWT auth token.
      */
@@ -96,6 +96,17 @@ class UserIdentity extends Object implements IdentityInterface
         if(isset($at))
             return $at->token;
         return null;
+    }
+
+    /** @var  int $_expireTime the expire time of the JWT for this identity. */
+    private $_expireTime;
+
+    /**
+     * @return int get the expire time of the JWT for this identity.
+     */
+    public function getExpireTime()
+    {
+        return $this->_expireTime;
     }
 
     /**
@@ -112,6 +123,8 @@ class UserIdentity extends Object implements IdentityInterface
                 $this->name = $attributes['name'];
             if(isset($attributes['email']))
                 $this->email = $attributes['email'];
+            if(isset($attributes['expireTime']))
+                $this->_expireTime = $attributes['expireTime'];
         }
     }
 
