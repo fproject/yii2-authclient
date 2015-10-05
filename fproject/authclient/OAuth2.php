@@ -113,7 +113,7 @@ class OAuth2 extends \yii\authclient\OAuth2
     public function getCurlOptions()
     {
         $options = parent::getCurlOptions();
-        if(!$this->isLoggingOut)
+        if(!$this->isLoggingOut && !isset($options[CURLOPT_HTTPHEADER]))
         {
             $options[CURLOPT_HTTPHEADER] =
                 ['Authorization: Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret)];
@@ -178,8 +178,10 @@ class OAuth2 extends \yii\authclient\OAuth2
     {
         if($accessToken == null)
             $accessToken = $this->getAccessToken()->token;
-        $headers = ['Authorization: Bearer ' . $accessToken];
-        return $this->sendRequest('GET', $this->userInfoUrl, $headers);
+        $curlOptions = $this->getCurlOptions();
+        $curlOptions[CURLOPT_HTTPHEADER]  = ['Authorization: Bearer ' . $accessToken];
+        $this->setCurlOptions($curlOptions);
+        return $this->sendRequest('GET', $this->userInfoUrl);
     }
 
     /**
