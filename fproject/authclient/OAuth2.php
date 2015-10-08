@@ -171,17 +171,40 @@ class OAuth2 extends \yii\authclient\OAuth2
     /**
      * Get user information from OAuth2 provider
      * @param string $accessToken The bearer access token, scoped to retrieve the consented claims for the subject (end-user).
+     * @param int $cacheDuration the cache duration
      * @return array
-     * @throws \Exception
+     * @throws \yii\authclient\InvalidResponseException
+     * @throws \yii\base\Exception
      */
-    public function getUserInfo($accessToken=null)
+    public function getUserInfo($accessToken=null, $cacheDuration=-1)
     {
         if($accessToken == null)
             $accessToken = $this->getAccessToken()->token;
-        $curlOptions = $this->getCurlOptions();
-        $curlOptions[CURLOPT_HTTPHEADER]  = ['Authorization: Bearer ' . $accessToken];
-        $this->setCurlOptions($curlOptions);
-        return $this->sendRequest('GET', $this->userInfoUrl);
+
+        $userInfo = null;
+
+        if(!empty($accessToken))
+        {
+            if($cacheDuration > 0 && Yii::$app->cache)
+            {
+                $cacheKey = "UserInfo_".sha1($accessToken);
+                $userInfo = Yii::$app->cache->get($cacheKey);
+            }
+
+            if(empty($userInfo))
+            {
+                $curlOptions = $this->getCurlOptions();
+                $curlOptions[CURLOPT_HTTPHEADER]  = ['Authorization: Bearer ' . $accessToken];
+                $this->setCurlOptions($curlOptions);
+                $userInfo = $this->sendRequest('GET', $this->userInfoUrl);
+                if($cacheDuration > 0 && Yii::$app->cache)
+                {
+                    Yii::$app->cache->set($cacheKey, $userInfo, $cacheDuration);
+                }
+            }
+        }
+
+        return $userInfo;
     }
 
     /**
