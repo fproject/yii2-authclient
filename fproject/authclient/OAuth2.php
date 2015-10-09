@@ -52,6 +52,14 @@ class OAuth2 extends \yii\authclient\OAuth2
         'email',
     ];
 
+    /**
+     * The server leeway time in seconds, to aware the acceptable different time between clocks
+     * of token issued server and relying parties.
+     * When checking nbf, iat or expiration times, we want to provide some extra leeway time to
+     * account for clock skew.
+     */
+    public $leeway = 0;
+
     private $isLoggingOut = false;
 
     /** The cryptography algorithm used to encrypt/decrypt JWT */
@@ -59,6 +67,7 @@ class OAuth2 extends \yii\authclient\OAuth2
 
     /** The expire duration for pubic key */
     const PUBLIC_KEY_EXPIRE_DURATION = 86400;
+
     /**
      * @inheritdoc
      */
@@ -272,6 +281,7 @@ class OAuth2 extends \yii\authclient\OAuth2
     public function init()
     {
         parent::init();
+        JWT::$leeway = $this->leeway;
         self::$_instance = $this;
     }
 
