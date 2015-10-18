@@ -49,7 +49,14 @@ class AuthAction extends \yii\authclient\AuthAction
                 if (!empty($_GET['sid']))
                     $client->sessionId = $_GET['sid'];
 
-                return $this->auth($client);
+                try
+                {
+                    return $this->auth($client);
+                }
+                catch (\Exception $e)
+                {
+                    throw new NotFoundHttpException();
+                }
             }
         }
 
