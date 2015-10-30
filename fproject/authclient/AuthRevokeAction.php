@@ -25,13 +25,14 @@ class AuthRevokeAction extends AuthLogoutActionBase
     /**
      * @inheritdoc
      */
-    public function run($token)
+    public function run()
     {
+        $token = Yii::$app->request->get('token');
         $authClient = OAuth2::getInstance();
         if($authClient)
         {
             $payload = $authClient->verifyAndDecodeToken($token, false);
-            $authClient->saveRevokedToken($payload);
+            $authClient->saveRevokedToken($token, $payload);
         }
     }
 
