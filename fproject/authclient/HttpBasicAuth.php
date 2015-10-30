@@ -1,6 +1,6 @@
 <?php
 
-namespace app\components;
+namespace fproject\authclient;
 
 use fproject\authclient\OAuth2;
 use Yii;
