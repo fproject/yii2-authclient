@@ -2,7 +2,6 @@
 
 namespace fproject\authclient;
 
-use fproject\authclient\OAuth2;
 use Yii;
 
 class HttpBasicAuth extends \yii\filters\auth\HttpBasicAuth
