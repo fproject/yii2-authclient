@@ -29,6 +29,15 @@ use Yii;
 
 class OAuth2 extends \yii\authclient\OAuth2
 {
+    /**
+     * @var string $clientRSId OAuth client Resource server ID.
+     */
+    public $clientRSId;
+    /**
+     * @var string $clientRSSecret OAuth client resource server secret.
+     */
+    public $clientRSSecret;
+
     /** @var string $jwkUrl the URL to obtain JWK or JWKSet */
     public $jwkUrl;
 
