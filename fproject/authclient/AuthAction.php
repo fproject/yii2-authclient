@@ -1,7 +1,7 @@
 <?php
 ///////////////////////////////////////////////////////////////////////////////
 //
-// © Copyright f-project.net 2010-present. All Rights Reserved.
+// ï¿½ Copyright f-project.net 2010-present. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ namespace fproject\authclient;
 use fproject\web\UserIdentity;
 use Yii;
 use yii\helpers\Json;
-use yii\web\NotFoundHttpException;
+use yii\web\UnauthorizedHttpException;
 
 class AuthAction extends \yii\authclient\AuthAction
 {
@@ -40,7 +40,7 @@ class AuthAction extends \yii\authclient\AuthAction
                 /* @var $collection \yii\authclient\Collection */
                 $collection = Yii::$app->get($this->clientCollection);
                 if (!$collection->hasClient($clientId)) {
-                    throw new NotFoundHttpException("Unknown auth client '{$clientId}'");
+                    throw new UnauthorizedHttpException("Unknown auth client '{$clientId}'");
                 }
 
                 /** @var OAuth2 $client */
@@ -55,12 +55,12 @@ class AuthAction extends \yii\authclient\AuthAction
                 }
                 catch (\Exception $e)
                 {
-                    throw new NotFoundHttpException();
+                    throw new UnauthorizedHttpException($e->getMessage(), $e->getCode(), $e->getPrevious());
                 }
             }
         }
 
-        throw new NotFoundHttpException();
+        throw new UnauthorizedHttpException("Authorization failed!");
     }
 
     /** @inheritdoc */
