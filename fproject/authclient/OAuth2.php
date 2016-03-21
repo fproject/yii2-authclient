@@ -24,8 +24,11 @@ use Firebase\JWT\JWT;
 use fproject\web\User;
 use fproject\web\UserIdentity;
 use yii\authclient\Collection;
+use yii\authclient\InvalidResponseException;
+use yii\base\Exception;
 use yii\helpers\Json;
 use Yii;
+use yii\web\UnauthorizedHttpException;
 
 class OAuth2 extends \yii\authclient\OAuth2
 {
@@ -214,7 +217,21 @@ class OAuth2 extends \yii\authclient\OAuth2
                 $curlOptions = $this->getCurlOptions();
                 $curlOptions[CURLOPT_HTTPHEADER]  = ['Authorization: Bearer ' . $accessToken];
                 $this->setCurlOptions($curlOptions);
-                $userInfo = $this->sendRequest('GET', $this->userInfoUrl);
+                try {
+                    $userInfo = $this->sendRequest('GET', $this->userInfoUrl);
+                } catch (Exception $e) {
+                    Yii::info("Error when connect to Oauth server, We are trying to get UserInfo\n
+                            with curloption: " . var_dump($curlOptions) . "\n
+                            and access-token: '$accessToken' \n
+                            and message: " . $e->getMessage());
+                    if($e instanceof InvalidResponseException) {
+                        Yii::$app->user->logout();
+                        $message = Yii::t('app', "Token expired. Please login again!");
+                    } else {
+                        $message = $e->getMessage();
+                    }
+                    throw new UnauthorizedHttpException($message, $e->getCode(), $e->getPrevious());
+                }
                 if($cacheDuration > 0 && Yii::$app->cache)
                 {
                     Yii::$app->cache->set($cacheKey, $userInfo, $cacheDuration);
