@@ -46,6 +46,8 @@ class AuthAction extends \yii\authclient\AuthAction
                 /** @var OAuth2 $client */
                 $client = $collection->getClient($clientId);
 
+                $client->contextData = Json::encode($contextData);
+
                 if (!empty($_GET['sid']))
                     $client->sessionId = $_GET['sid'];
 
@@ -59,8 +61,7 @@ class AuthAction extends \yii\authclient\AuthAction
                 }
             }
         }
-
-        throw new UnauthorizedHttpException("Authorization failed!");
+        return parent::run();
     }
 
     /** @inheritdoc */
