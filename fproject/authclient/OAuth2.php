@@ -292,12 +292,12 @@ class OAuth2 extends \yii\authclient\OAuth2
 
         /** @var UserIdentity $identity */
         $identity = Yii::$app->user->identity;
-        $token = $this->getAccessToken()->token;
         if($globalLogout)
             Yii::$app->user->logout();
 
         if($identity != null && !empty($identity->sid))
         {
+            $token = $this->getAccessToken()->token;
             $headers = ['Authorization: Bearer ' . $token];
             $params = ['sid' => $identity->sid];
             $this->sendRequest('GET', $this->logoutUrl, $params, $headers);
