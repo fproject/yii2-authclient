@@ -132,18 +132,6 @@ class OAuth2 extends \yii\authclient\OAuth2
         return null;
     }
 
-    public function getCurlOptions()
-    {
-        $options = parent::getCurlOptions();
-        if(!$this->isLoggingOut && !isset($options[CURLOPT_HTTPHEADER]))
-        {
-            $options[CURLOPT_HTTPHEADER] =
-                ['Authorization: Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret)];
-        }
-
-        return $options;
-    }
-
     /** @var  array $publicKey */
     private $_publicKey;
 
@@ -155,6 +143,7 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     public function getPublicKey()
     {
+        /** @var string $cacheKey */
         if(empty($this->_publicKey) && !empty($this->jwkUrl))
         {
             if(Yii::$app->cache)
@@ -165,7 +154,7 @@ class OAuth2 extends \yii\authclient\OAuth2
 
             if(empty($jwk))
             {
-                $jwk = $this->sendRequest('GET', $this->jwkUrl);
+                $jwk = $this->api($this->jwkUrl, 'GET');
                 if(!empty($jwk) && Yii::$app->cache)
                     Yii::$app->cache->set($cacheKey, $jwk, self::PUBLIC_KEY_EXPIRE_DURATION);
             }
@@ -200,6 +189,7 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     public function getUserInfo($accessToken=null, $cacheDuration=-1)
     {
+        /** @var string $cacheKey */
         if($accessToken == null)
             $accessToken = $this->getAccessToken()->token;
 
@@ -215,15 +205,14 @@ class OAuth2 extends \yii\authclient\OAuth2
 
             if(empty($userInfo))
             {
-                $curlOptions = $this->getCurlOptions();
-                $curlOptions[CURLOPT_HTTPHEADER]  = ['Authorization: Bearer ' . $accessToken];
-                $this->setCurlOptions($curlOptions);
+                $header  = [
+                    'Authorization' => 'Bearer ' . $accessToken
+                ];
                 try {
-                    $userInfo = $this->sendRequest('GET', $this->userInfoUrl);
+                    $userInfo = $this->api($this->userInfoUrl, 'GET', [], $header);
                 } catch (Exception $e) {
                     Yii::info("Error when connect to Oauth server, We are trying to get UserInfo\n
-                            with curloption: " . var_dump($curlOptions) . "\n
-                            and access-token: '$accessToken' \n
+                            with access-token: '$accessToken' \n
                             and message: " . $e->getMessage());
                     if($e instanceof InvalidResponseException) {
                         Yii::$app->user->logout();
@@ -298,9 +287,13 @@ class OAuth2 extends \yii\authclient\OAuth2
         if($identity != null && !empty($identity->sid))
         {
             $token = $this->getAccessToken()->token;
-            $headers = ['Authorization: Bearer ' . $token];
-            $params = ['sid' => $identity->sid];
-            $this->sendRequest('GET', $this->logoutUrl, $params, $headers);
+            $headers = [
+                'Authorization' => 'Bearer ' . $token
+            ];
+            $params = [
+                'sid' => $identity->sid
+            ];
+            $this->api($this->logoutUrl, 'GET', $params, $headers);
         }
         return true;
     }
