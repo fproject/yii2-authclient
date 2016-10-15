@@ -154,11 +154,18 @@ class OAuth2 extends \yii\authclient\OAuth2
 
             if(empty($jwk))
             {
-                $jwk = $this->api($this->jwkUrl, 'GET');
-                if(!empty($jwk) && Yii::$app->cache)
-                    Yii::$app->cache->set($cacheKey, $jwk, self::PUBLIC_KEY_EXPIRE_DURATION);
+                $res = $this->createRequest()
+                    ->setMethod('GET')
+                    ->setUrl($this->jwkUrl)
+                    ->send();
+                if(!empty($res)) {
+                    $jwk = $res->getContent();
+                    if(!empty($jwk) && Yii::$app->cache)
+                        Yii::$app->cache->set($cacheKey, $jwk, self::PUBLIC_KEY_EXPIRE_DURATION);
+                } else {
+                    throw new UnauthorizedHttpException("Can\'t get public key");
+                }
             }
-
             if(!empty($jwk))
                 $this->_publicKey = JWK::parseKeySet($jwk);
         }
