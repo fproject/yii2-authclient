@@ -28,6 +28,7 @@ use yii\authclient\InvalidResponseException;
 use yii\base\Exception;
 use yii\helpers\Json;
 use Yii;
+use yii\web\HttpException;
 use yii\web\UnauthorizedHttpException;
 
 class OAuth2 extends \yii\authclient\OAuth2
@@ -303,6 +304,45 @@ class OAuth2 extends \yii\authclient\OAuth2
             $this->api($this->logoutUrl, 'GET', $params, $headers);
         }
         return true;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function fetchAccessToken($authCode, array $params = [])
+    {
+        if ($this->validateAuthState) {
+            $authState = $this->getState('authState');
+            if (!isset($_REQUEST['state']) || empty($authState) || strcmp($_REQUEST['state'], $authState) !== 0) {
+                throw new HttpException(400, 'Invalid auth state parameter.');
+            } else {
+                $this->removeState('authState');
+            }
+        }
+
+        $defaultParams = [
+            'code' => $authCode,
+            'grant_type' => 'authorization_code',
+            'redirect_uri' => $this->getReturnUrl(),
+        ];
+
+        $defaultHeaders = [
+            'Content-Type' => 'application/x-www-form-urlencoded',
+            'Authorization' => 'Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret),
+        ];
+
+        $request = $this->createRequest()
+            ->setMethod('POST')
+            ->setUrl($this->tokenUrl)
+            ->setHeaders($defaultHeaders)
+            ->setData(array_merge($defaultParams, $params));
+
+        $response = $this->sendRequest($request);
+
+        $token = $this->createToken(['params' => $response]);
+        $this->setAccessToken($token);
+
+        return $token;
     }
 
     public function init()
