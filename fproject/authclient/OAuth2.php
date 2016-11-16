@@ -198,8 +198,8 @@ class OAuth2 extends \yii\authclient\OAuth2
     public function getUserInfo($accessToken=null, $cacheDuration=-1)
     {
         /** @var string $cacheKey */
-        if($accessToken == null)
-            $accessToken = $this->getAccessToken()->token;
+        if($accessToken == null && !empty($at = $this->getAccessToken()))
+            $accessToken = $at->token;
 
         $userInfo = null;
 
