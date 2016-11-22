@@ -98,7 +98,8 @@ class OAuth2 extends \yii\authclient\OAuth2
         ];
         $params['claims'] = Json::encode($claims);
         $params['contextData'] = $this->contextData;
-        $params['ui_locales'] = Yii::$app->language;
+        $uiLocales = Yii::$app->getRequest()->get("ui_locales");
+        $params['ui_locales'] = $uiLocales ? $uiLocales : Yii::$app->language;
 
         return parent::buildAuthUrl($params);
     }
