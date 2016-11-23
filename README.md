@@ -23,3 +23,4 @@ Links
 
 - [GitHub](https://github.com/fproject/yii2-authclient)
 - [Packagist](https://packagist.org/packages/fproject/yii2-authclient)
+- [F-Project](http://f-project.net)
