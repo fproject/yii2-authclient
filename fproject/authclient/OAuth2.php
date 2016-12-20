@@ -198,9 +198,13 @@ class OAuth2 extends \yii\authclient\OAuth2
      */
     public function getUserInfo($accessToken=null, $cacheDuration=-1)
     {
-        /** @var string $cacheKey */
-        if($accessToken == null && !empty($at = $this->getAccessToken()))
-            $accessToken = $at->token;
+        try {
+            /** @var string $cacheKey */
+            if($accessToken == null && !empty($at = $this->getAccessToken()))
+                $accessToken = $at->token;
+        } catch (Exception $e) {
+            Yii::error($e->getMessage());
+        }
 
         $userInfo = null;
 
@@ -337,6 +341,35 @@ class OAuth2 extends \yii\authclient\OAuth2
             ->setUrl($this->tokenUrl)
             ->setHeaders($defaultHeaders)
             ->setData(array_merge($defaultParams, $params));
+
+        $response = $this->sendRequest($request);
+
+        $token = $this->createToken(['params' => $response]);
+        $this->setAccessToken($token);
+
+        return $token;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function refreshAccessToken(\yii\authclient\OAuthToken $token)
+    {
+        $defaultParams = [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $token->getParam('refresh_token'),
+        ];
+
+        $defaultHeaders = [
+            'Content-Type' => 'application/x-www-form-urlencoded',
+            'Authorization' => 'Basic ' . base64_encode($this->clientId . ":" . $this->clientSecret),
+        ];
+
+        $request = $this->createRequest()
+            ->setMethod('POST')
+            ->setUrl($this->tokenUrl)
+            ->setHeaders($defaultHeaders)
+            ->setData($defaultParams);
 
         $response = $this->sendRequest($request);
 
