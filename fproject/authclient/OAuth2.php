@@ -297,16 +297,20 @@ class OAuth2 extends \yii\authclient\OAuth2
         if($globalLogout)
             Yii::$app->user->logout();
 
-        if($identity != null && !empty($identity->sid))
-        {
-            $token = $this->getAccessToken()->token;
-            $headers = [
-                'Authorization' => 'Bearer ' . $token
-            ];
-            $params = [
-                'sid' => $identity->sid
-            ];
-            $this->api($this->logoutUrl, 'GET', $params, $headers);
+        try {
+            if($identity != null && !empty($identity->sid))
+            {
+                $token = $this->getAccessToken()->token;
+                $headers = [
+                    'Authorization' => 'Bearer ' . $token
+                ];
+                $params = [
+                    'sid' => $identity->sid
+                ];
+                $this->api($this->logoutUrl, 'GET', $params, $headers);
+            }
+        } catch (Exception $e) {
+            Yii::$app->response->redirect(Yii::$app->getHomeUrl());
         }
         return true;
     }
